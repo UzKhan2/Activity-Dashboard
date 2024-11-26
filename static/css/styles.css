@@ -1,27 +1,315 @@
 /* Base Variables */
 :root {
-    --primary-color: #ed1c24;
+    --primary-color: #00df54;
     --background-color: #1a1a1a;
     --card-color: #252525;
     --text-color: #ffffff;
     --text-muted: #999;
     --card-hover: #2d2d2d;
     --border-radius: 8px;
+    --transition-speed: 0.3s;
 }
 
 /* Reset Styles */
-* {
+*,
+*::before,
+*::after {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
+/* Global Styles */
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
         Ubuntu, Cantarell, sans-serif;
     background-color: var(--background-color);
     color: var(--text-color);
     line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Button Group and Base Button Styles */
+.button-group {
+    display: flex;
+    gap: var(--spacing-base);
+    justify-content: center;
+    flex-wrap: wrap;
+    padding: 0 var(--spacing-base);
+}
+
+.button-wrapper {
+    position: relative;
+    min-width: 200px;
+    height: 48px;
+    display: inline-block;
+}
+
+.cta-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-base) calc(var(--spacing-base) * 2);
+    width: 100%;
+    height: 100%;
+    padding: 0 2rem;
+    color: white;
+    text-decoration: none;
+    border-radius: 12px;
+    font-weight: 600;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-origin: center;
+}
+
+.cta-button:focus-visible {
+    outline: none;
+}
+
+.cta-button span {
+    transition: opacity 0.15s ease;
+}
+
+/* MyAnimeList Button */
+.cta-button[href="/myanimelist"] {
+    background-color: #2e51a2 !important;
+    position: relative;
+}
+
+.button-wrapper:hover .cta-button[href="/myanimelist"] {
+    width: 48px;
+    min-width: 48px;
+    padding: 0;
+    border-radius: 50%;
+}
+
+.button-wrapper:hover .cta-button[href="/myanimelist"] span {
+    opacity: 0;
+}
+
+.cta-button[href="/myanimelist"]::after {
+    content: "";
+    display: block;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 1024 1024' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='512' cy='512' r='512' style='fill:%232e51a2'/%3E%3Cpath d='M432.49 410.61V590.3l-44.86-.06V479l-43.31 51.29-42.43-52.44-.43 112.75H256V410.65h47l39.79 54.29 43-54.31zm184.06 44.14.53 135.15h-50.45l-.17-61.25h-59.73c1.49 10.65 4.48 27 8.9 38 3.31 8.13 6.36 16 12.44 24.06l-36.37 24c-7.45-13.57-13.27-28.52-18.73-44.42a198.31 198.31 0 0 1-10.82-46.49c-1.81-16-2.07-31.38 2.28-47.19a83.37 83.37 0 0 1 24.77-39.81c6.68-6.25 16-10.67 23.47-14.66s15.85-5.63 23.62-7.66a158 158 0 0 1 25.41-3.9c8.49-.73 23.62-1.41 51-.6l11.63 37.31h-58.78c-12.65.17-18.73 0-28.61 4.46a47.7 47.7 0 0 0-27.26 41l56.81.7.81-38.61h49.26zM701.72 410v141.35L768 552l-9.17 37.87H656.28V409.33z' style='fill:%23fff'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.button-wrapper:hover .cta-button[href="/myanimelist"]::after {
+    background-size: contain;
+    opacity: 1;
+}
+
+/* Letterboxd Button */
+.cta-button[href="/letterboxd"] {
+    background-color: #412905 !important;
+    position: relative;
+}
+
+.button-wrapper:hover .cta-button[href="/letterboxd"] {
+    width: 48px;
+    min-width: 48px;
+    padding: 0;
+    border-radius: 50%;
+}
+
+.button-wrapper:hover .cta-button[href="/letterboxd"] span {
+    opacity: 0;
+}
+
+.cta-button[href="/letterboxd"]::after {
+    content: "";
+    display: block;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 40'%3E%3Cg fill-rule='evenodd'%3E%3Ccircle cx='20' cy='20' r='15' fill='%23FF8000' fill-opacity='0.95'/%3E%3Ccircle cx='60' cy='20' r='15' fill='%2300E054' fill-opacity='0.95'/%3E%3Ccircle cx='100' cy='20' r='15' fill='%2340BCF4' fill-opacity='0.95'/%3E%3C/g%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.button-wrapper:hover .cta-button[href="/letterboxd"]::after {
+    background-size: contain;
+    opacity: 1;
+}
+
+/* GitHub Button */
+.cta-button[href="/github"] {
+    background-color: #171515 !important;
+    position: relative;
+}
+
+.button-wrapper:hover .cta-button[href="/github"] {
+    width: 48px;
+    min-width: 48px;
+    padding: 0;
+    border-radius: 50%;
+}
+
+.button-wrapper:hover .cta-button[href="/github"] span {
+    opacity: 0;
+}
+
+.cta-button[href="/github"]::after {
+    content: "";
+    display: block;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill='white' d='M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.button-wrapper:hover .cta-button[href="/github"]::after {
+    background-size: contain;
+    opacity: 1;
+}
+
+/* Trakt Button */
+.cta-button[href="/trakt"] {
+    background-color: #ed1c24 !important;
+    position: relative;
+}
+
+.button-wrapper:hover .cta-button[href="/trakt"] {
+    background-color: #ffffff !important;
+    width: 48px;
+    min-width: 48px;
+    padding: 0;
+    border-radius: 50%;
+}
+
+.button-wrapper:hover .cta-button[href="/trakt"] span {
+    opacity: 0;
+}
+
+.cta-button[href="/trakt"]::after {
+    content: "";
+    display: block;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill='%23ED1C24' d='M12 24C5.385 24 0 18.615 0 12S5.385 0 12 0s12 5.385 12 12-5.385 12-12 12zm0-22.789C6.05 1.211 1.211 6.05 1.211 12S6.05 22.79 12 22.79 22.79 17.95 22.79 12 17.95 1.211 12 1.211zm-7.11 17.32c1.756 1.92 4.294 3.113 7.11 3.113 1.439 0 2.801-.313 4.027-.876l-6.697-6.68-4.44 4.443zm14.288-.067c1.541-1.71 2.484-3.99 2.484-6.466 0-3.885-2.287-7.215-5.568-8.76l-6.089 6.076 9.164 9.15h.009zm-9.877-8.429L4.227 15.09l-.679-.68 5.337-5.336 6.23-6.225c-.978-.328-2.02-.509-3.115-.509C6.663 2.337 2.337 6.663 2.337 12c0 2.172.713 4.178 1.939 5.801l5.056-5.055.359.329 7.245 7.245c.15-.082.285-.164.42-.266L9.33 12.05l-4.854 4.855-.679-.679 5.535-5.535.359.331 8.46 8.437c.135-.1.255-.215.375-.316L9.39 10.027l-.083.015-.006-.007zm3.047 1.028l-.678-.676 4.788-4.79.679.689-4.789 4.785v-.008zm4.542-6.578l-5.52 5.52-.68-.679 5.521-5.52.679.684v-.005z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.button-wrapper:hover .cta-button[href="/trakt"]::after {
+    background-size: contain;
+    opacity: 1;
+}
+
+/* Goodreads Button */
+.cta-button[href="/goodreads"] {
+    background-color: #ffffff !important;
+    color: #372213 !important;
+    position: relative;
+}
+
+.button-wrapper:hover .cta-button[href="/goodreads"] {
+    width: 48px;
+    min-width: 48px;
+    padding: 0;
+    border-radius: 50%;
+}
+
+.button-wrapper:hover .cta-button[href="/goodreads"] span {
+    opacity: 0;
+}
+
+.cta-button[href="/goodreads"]::after {
+    content: "";
+    display: block;
+    width: 24px;
+    height: 24px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-image: url("data:image/svg+xml,%3Csvg fill='%23372213' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M19.525 15.977V.49h-2.059v2.906h-.064c-.211-.455-.481-.891-.842-1.307-.36-.412-.767-.777-1.232-1.094-.466-.314-.962-.561-1.519-.736C13.256.09 12.669 0 12.038 0c-1.21 0-2.3.225-3.246.67-.947.447-1.743 1.057-2.385 1.83-.642.773-1.133 1.676-1.47 2.711-.336 1.037-.506 2.129-.506 3.283 0 1.199.141 2.326.425 3.382.286 1.057.737 1.976 1.368 2.762.631.78 1.412 1.397 2.375 1.833.961.436 2.119.661 3.471.661 1.248 0 2.33-.315 3.262-.946s1.638-1.473 2.119-2.525h.061v2.284c0 2.044-.421 3.607-1.264 4.705-.84 1.081-2.224 1.638-4.146 1.638-.572 0-1.128-.061-1.669-.181-.542-.12-1.036-.315-1.487-.57-.437-.271-.827-.601-1.143-1.038-.316-.435-.526-.961-.632-1.593H5.064c.067.887.315 1.654.737 2.3.424.646.961 1.172 1.602 1.593.641.406 1.367.706 2.172.902.811.194 1.639.3 2.494.3 1.383 0 2.541-.195 3.486-.555.947-.376 1.714-.902 2.301-1.608.601-.708 1.021-1.549 1.293-2.556.27-1.007.42-2.134.42-3.367l-.044.062zm-7.484-.557c-.955 0-1.784-.189-2.479-.571-.697-.38-1.277-.882-1.732-1.503-.467-.621-.797-1.332-1.022-2.139s-.332-1.633-.332-2.484c0-.871.105-1.725.301-2.563.21-.84.54-1.587.992-2.24.451-.652 1.037-1.182 1.728-1.584s1.533-.605 2.51-.605 1.803.209 2.495.621c.676.415 1.247.959 1.683 1.634.436.677.751 1.429.947 2.255.195.826.285 1.656.285 2.482 0 .852-.12 1.678-.345 2.484-.226.807-.572 1.518-1.038 2.139-.465.621-1.021 1.123-1.698 1.503-.676.382-1.458.571-2.359.571h.064z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.button-wrapper:hover .cta-button[href="/goodreads"]::after {
+    background-size: contain;
+    opacity: 1;
+}
+
+/* TrueAchievements Button */
+.cta-button[href="/trueachievements"] {
+    background-color: #107C10 !important;
+    position: relative;
+}
+
+.button-wrapper:hover .cta-button[href="/trueachievements"] {
+    width: 48px;
+    min-width: 48px;
+    padding: 0;
+    border-radius: 50%;
+}
+
+.button-wrapper:hover .cta-button[href="/trueachievements"] span {
+    opacity: 0;
+}
+
+.cta-button[href="/trueachievements"]::after {
+    content: "";
+    display: block;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0.93 0.93 558.14 558.14' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M44.49 247.33c13.62-104.82 96.65-189.22 201.47-204.2V.93C116.64 15.9 15.9 118 .93 247.33z' fill='%23c1f800'/%3E%3Cpath d='M314.04 43.13V.93C443.36 15.9 544.1 118 559.07 247.33h-43.56c-13.62-104.82-96.65-189.22-201.47-204.2zM44.49 312.67c13.62 104.82 96.65 189.22 201.47 204.2v42.2C116.64 544.1 15.9 442 .93 312.67zm471.02 0h43.56C544.1 442 443.36 544.1 314.04 559.07v-42.2c104.82-14.98 187.85-99.38 201.47-204.2z' fill='%23ffffff'/%3E%3Cpath d='M180.63 233.71h35.38c6.81 0 12.26-5.44 12.26-12.24 0-6.81-5.45-12.25-12.26-12.25h-36.75c-12.25 0-23.14-10.9-23.14-23.15v-24.5c0-6.81-5.45-12.26-12.25-12.26a12.21 12.21 0 0 0-12.26 12.26v24.5c1.37 25.87 21.79 47.64 49.02 47.64zm49 127.97h-50.37c-12.25 0-23.14-10.9-23.14-23.15v-85.76a12.2 12.2 0 0 0-12.25-12.25c-6.81 0-12.26 5.44-12.26 12.25v85.76c0 25.87 21.79 47.65 47.65 47.65h49.01a12.2 12.2 0 0 0 12.25-12.25c1.36-6.81-4.09-12.25-10.89-12.25zm217.82-25.86c0-6.81-5.45-12.25-12.26-12.25a12.2 12.2 0 0 0-12.25 12.25v1.36c0 12.24-9.53 23.13-21.78 23.13h-51.74c-12.24-1.36-21.77-10.89-21.77-23.13v-5.45c0-13.61 10.88-23.14 23.13-23.14h49.02c25.86 0 47.65-21.78 47.65-47.65v-5.45c0-25.86-19.06-46.27-44.93-47.64h-83.04c-6.81 0-12.25 5.45-12.25 12.26 0 6.79 5.44 12.24 12.25 12.24h78.95c12.26 0 23.15 10.89 23.15 23.14v4.09c0 13.61-10.89 23.14-23.15 23.14h-49.01c-25.85 0-47.64 21.79-47.64 47.65v5.45c0 25.86 21.79 47.64 47.64 47.64h51.74c24.5-1.36 44.93-21.78 44.93-47.64h1.36c0 1.36 0 1.36 0 0z' fill='%23ffffff'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.button-wrapper:hover .cta-button[href="/trueachievements"]::after {
+    background-size: contain;
+    opacity: 1;
+}
+
+@media (max-width: 768px) {
+    .cta-button {
+        width: 100%;
+    }
+    
+    .cta-button:hover {
+        width: 48px !important;
+        margin: 0 auto;
+    }
 }
 
 /* Layout */
@@ -29,51 +317,80 @@ body {
     max-width: 1200px;
     margin: 0 auto;
     padding: 2rem;
+    width: 100%;
 }
 
 /* Header */
-header {
+.header {
     text-align: center;
     margin-bottom: 2rem;
     padding: 1rem;
     background-color: var(--card-color);
     border-radius: var(--border-radius);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.nav-link {
+    display: inline-block;
+    color: var(--text-color);
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: var(--border-radius);
+    margin-top: 1rem;
+    transition: background-color 0.3s ease;
+}
+
+.nav-link:hover {
+    background-color: var(--primary-color);
 }
 
 h1 {
     color: var(--primary-color);
     margin-bottom: 0.5rem;
+    font-size: clamp(1.5rem, 4vw, 2.5rem);
 }
 
 h2 {
     color: var(--text-color);
     margin-bottom: 1.5rem;
+    font-size: clamp(1.25rem, 3vw, 2rem);
 }
 
 /* Navigation Tabs */
 .tab-container {
     display: flex;
+    justify-content: space-between;
     gap: 1rem;
     margin-bottom: 2rem;
     background-color: var(--card-color);
     padding: 1rem;
     border-radius: var(--border-radius);
     overflow-x: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary-color) var(--background-color);
 }
 
 .tab-button {
+    flex: 1;
     padding: 0.75rem 1.5rem;
     border: none;
     background-color: transparent;
     color: var(--text-color);
     cursor: pointer;
     border-radius: 4px;
-    transition: background-color 0.3s;
+    transition: background-color var(--transition-speed) ease;
     white-space: nowrap;
+    font-weight: 500;
 }
 
 .tab-button:hover {
     background-color: rgba(255, 255, 255, 0.1);
+}
+
+.tab-button:focus {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
 }
 
 .tab-button.active {
@@ -87,16 +404,18 @@ h2 {
     padding: 1.5rem;
     border-radius: var(--border-radius);
     margin-bottom: 1rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .content-section.active {
     display: block;
+    animation: fadeIn var(--transition-speed) ease-out;
 }
 
 /* Statistics Cards */
 .stats-container {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 1rem;
     margin-bottom: 2rem;
 }
@@ -106,7 +425,8 @@ h2 {
     padding: 1.5rem;
     border-radius: var(--border-radius);
     text-align: center;
-    transition: transform 0.3s ease;
+    transition: transform var(--transition-speed) ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .stat-card:hover {
@@ -114,7 +434,7 @@ h2 {
 }
 
 .stat-value {
-    font-size: 2rem;
+    font-size: clamp(1.5rem, 3vw, 2rem);
     font-weight: bold;
     color: var(--primary-color);
     margin-bottom: 0.5rem;
@@ -128,7 +448,7 @@ h2 {
 /* Media Grid */
 .media-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     gap: 1.5rem;
     margin-top: 1rem;
 }
@@ -138,12 +458,14 @@ h2 {
     background-color: rgba(255, 255, 255, 0.1);
     border-radius: var(--border-radius);
     overflow: hidden;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transition: transform var(--transition-speed) ease,
+                box-shadow var(--transition-speed) ease;
     height: 100%;
     display: flex;
     flex-direction: column;
-    max-width: 270px;
+    width: 250px; 
     margin: 0 auto;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .media-card:hover {
@@ -166,7 +488,7 @@ h2 {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 0.3s ease;
+    transition: transform var(--transition-speed) ease;
 }
 
 .media-card:hover .media-poster img {
@@ -187,6 +509,9 @@ h2 {
 
 .media-info {
     padding: 1rem;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
 }
 
 .media-title {
@@ -198,6 +523,126 @@ h2 {
 .media-meta {
     font-size: 0.9rem;
     color: var(--text-muted);
+    margin-top: auto;
+}
+
+/* Anime-specific styles */
+.anime-title {
+    font-size: 1rem;
+    font-weight: bold;
+    color: var(--text-color);
+    margin-bottom: 0.25rem;
+}
+
+.anime-type {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    margin-bottom: 0.25rem;
+}
+
+.anime-score {
+    color: #ffd700;
+    font-size: 1.1rem;
+    margin-top: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+/* Genres */
+.anime-genres {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    margin-top: 0.5rem;
+}
+
+.genre-tag {
+    font-size: 0.7rem;
+    padding: 0.15rem 0.4rem;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    transition: background-color var(--transition-speed) ease;
+}
+
+.genre-tag:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Progress Bars */
+.completion-bar,
+.anime-progress {
+    width: 100%;
+    height: 4px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+    margin-top: 0.5rem;
+    overflow: hidden;
+}
+
+.completion-progress,
+.progress-bar {
+    height: 100%;
+    background-color: var(--primary-color);
+    transition: width var(--transition-speed) ease;
+    width: var(--progress);
+}
+
+/* Synopsis */
+.synopsis {
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+    color: var(--text-muted);
+    position: relative;
+    height: 4.5em;
+    overflow: hidden;
+    padding-right: 1rem;
+}
+
+.synopsis::after {
+    content: "...";
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    padding: 0 0.25rem;
+    background: var(--card-color);
+}
+
+/* Status */
+.anime-status {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    margin-top: 0.5rem;
+    text-transform: capitalize;
+}
+
+.status-watching {
+    background-color: #4caf50;
+    color: white;
+}
+
+.status-completed {
+    background-color: #2196f3;
+    color: white;
+}
+
+.status-plan-to-watch {
+    background-color: #9e9e9e;
+    color: white;
+}
+
+/* Episode Progress */
+.episode-progress {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.episode-count {
+    flex-shrink: 0;
 }
 
 /* Watch Time Chart */
@@ -206,80 +651,51 @@ h2 {
     background-color: rgba(255, 255, 255, 0.1);
     padding: 1rem;
     border-radius: var(--border-radius);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-/* History List */
+/* History Section */
 #history-list {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    padding: 0.5rem;
-}
-
-#history-list .media-card {
-    display: flex;
-    align-items: center;
-    padding: 1rem;
-}
-
-#history-list .media-info {
-    flex: 1;
+    padding: 20px;
 }
 
 .history-item {
     background-color: var(--card-color);
-    border-radius: var(--border-radius);
-    padding: 1.5rem;
-    margin-bottom: 1rem;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    padding: 15px 20px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    transition: transform var(--transition-speed) ease;
 }
 
-.history-item:hover .history-title {
-    color: #fff;
-}
-
-.history-item:hover .history-episode {
-    opacity: 1;
-}
-
-.history-item:not(:last-child) {
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+.history-item:hover {
+    transform: translateY(-2px);
 }
 
 .history-title {
-    font-size: 1.1rem;
-    font-weight: bold;
     color: var(--text-color);
-    margin-bottom: 0.5rem;
+    font-size: 18px;
+    font-weight: 500;
+    margin-bottom: 5px;
 }
 
 .history-episode {
     color: var(--primary-color);
-    font-size: 1rem;
-    margin-bottom: 0.5rem;
-    opacity: 0.9;
-}
-
-.history-meta {
-    font-size: 0.9rem;
-    color: var(--text-muted);
+    font-size: 16px;
+    margin-bottom: 5px;
 }
 
 .history-time {
-    font-size: 0.85rem;
     color: var(--text-muted);
-    margin-top: 0.5rem;
+    font-size: 14px;
 }
 
-/* Loading States */
+/* States */
 .loading {
     opacity: 0.7;
     pointer-events: none;
 }
 
-/* Error States */
 .error-message {
     color: var(--primary-color);
     text-align: center;
@@ -287,6 +703,18 @@ h2 {
     background-color: rgba(237, 28, 36, 0.1);
     border-radius: var(--border-radius);
     margin: 1rem 0;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* Responsive Design */
@@ -301,10 +729,6 @@ h2 {
 
     .media-grid {
         grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    }
-
-    .media-poster {
-        height: 225px;
     }
 
     .stat-value {
@@ -329,29 +753,15 @@ h2 {
     .media-grid {
         grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
     }
-
-    .media-poster {
-        height: 200px;
-    }
 }
 
-/* Animations */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+/* Focus States for Accessibility */
+:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
 }
 
-.content-section.active {
-    animation: fadeIn 0.3s ease-out;
-}
-
-/* Scrollbar Styling */
+/* Scrollbar */
 ::-webkit-scrollbar {
     width: 8px;
     height: 8px;
@@ -368,4 +778,21 @@ h2 {
 
 ::-webkit-scrollbar-thumb:hover {
     background: #ff2c35;
+}
+
+/* Print Styles */
+@media print {
+    body {
+        background-color: white;
+        color: black;
+    }
+
+    .media-card {
+        break-inside: avoid;
+    }
+
+    .tab-container,
+    .media-poster img {
+        display: none;
+    }
 }
