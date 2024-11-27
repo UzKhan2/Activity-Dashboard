@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="icon"
+      type="image/x-icon"
+      href="/static/favicon/myanimelist.ico"
+    />
+    <link
+      rel="shortcut icon"
+      type="image/x-icon"
+      href="/static/favicon/myanimelist.ico"
+    />
+    <title>MyAnimeList</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+    <link rel="stylesheet" href="/static/css/styles.css" />
+    <style>
+      /* Tab Container */
+      .tab-container {
+        background-color: #2a2a2a;
+        padding: 0.5rem;
+        margin-bottom: 2rem;
+        display: flex;
+        gap: 0.5rem;
+        border-radius: var(--border-radius);
+      }
+
+      .tab-button {
+        flex: 1;
+        padding: 0.75rem 1.5rem;
+        border: none;
+        background-color: transparent;
+        color: #ffffff;
+        cursor: pointer;
+        text-align: center;
+        transition: background-color 0.3s;
+        border-radius: 4px;
+      }
+
+      .tab-button.active {
+        background-color: var(--primary-color);
+      }
+
+      /* Content Sections */
+      .content-section {
+        display: none;
+      }
+
+      .content-section.active {
+        display: block;
+      }
+
+      /* Chart specific styles */
+      #watchTimeChart {
+        margin-top: 2rem;
+        background-color: rgba(255, 255, 255, 0.1);
+        padding: 1rem;
+        border-radius: var(--border-radius);
+        max-height: 400px;
+      }
+
+      /* Stats Container */
+      .stats-container {
+        background-color: var(--card-color);
+        border-radius: var(--border-radius);
+        padding: 2rem;
+        margin-bottom: 2rem;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+      }
+
+      .stat-card {
+        background-color: rgba(255, 255, 255, 0.05);
+        padding: 1.5rem;
+        border-radius: var(--border-radius);
+        text-align: center;
+        transition: transform 0.3s ease;
+      }
+
+      .stat-card:hover {
+        transform: translateY(-5px);
+      }
+
+      .stat-value {
+        font-size: 2rem;
+        font-weight: bold;
+        color: var(--primary-color);
+        margin-bottom: 0.5rem;
+      }
+
+      .stat-label {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+      }
+
+      /* Media Grids */
+      .anime-grid,
+      .manga-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 2rem;
+        padding: 2rem;
+      }
+
+      /* Media Cards */
+      .anime-card,
+      .manga-card {
+        background-color: #252525;
+        border: 1px solid #333333;
+        border-radius: 8px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      }
+
+      .anime-card:hover,
+      .manga-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+      }
+
+      .anime-link,
+      .manga-link {
+        color: inherit;
+        text-decoration: none;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+      }
+
+      .anime-cover,
+      .manga-cover {
+        position: relative;
+        width: 100%;
+        padding-top: 150%;
+        overflow: hidden;
+        background-color: #1a1a1a;
+        border-bottom: 1px solid #333;
+      }
+
+      .anime-cover img,
+      .manga-cover img {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+      }
+
+      .anime-card:hover .anime-cover img,
+      .manga-card:hover .manga-cover img {
+        transform: scale(1.05);
+      }
+
+      .anime-info,
+      .manga-info {
+        padding: 1rem;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        background-color: #252525;
+      }
+
+      .anime-title,
+      .manga-title {
+        font-size: 0.95rem;
+        font-weight: bold;
+        margin-bottom: 0.25rem;
+        line-height: 1.4;
+      }
+
+      .anime-meta,
+      .manga-meta {
+        color: var(--text-muted);
+        font-size: 0.85rem;
+        margin-top: auto;
+      }
+
+      .anime-score,
+      .manga-score {
+        color: #ffffff;
+        margin-top: 0.5rem;
+        font-size: 1.1rem;
+      }
+
+      .anime-type,
+      .manga-type {
+        color: #999;
+        font-size: 0.85rem;
+        margin-bottom: 0.5rem;
+      }
+
+      .episode-progress,
+      .chapter-progress {
+        margin-top: 0.75rem;
+        font-size: 0.85rem;
+        color: #999;
+      }
+
+      .anime-progress,
+      .manga-progress {
+        width: 100%;
+        height: 4px;
+        background-color: rgba(255, 255, 255, 0.1);
+        border-radius: 2px;
+        margin-top: 0.5rem;
+        overflow: hidden;
+      }
+
+      .progress-bar {
+        height: 100%;
+        background-color: var(--primary-color);
+        transition: width 0.3s ease;
+      }
+
+      /* Filter Container */
+      .filter-container {
+        padding: 0.5rem 2rem;
+        display: flex;
+        gap: 0.5rem;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+
+      .filter-button {
+        padding: 0.5rem 1rem;
+        border: none;
+        background-color: rgba(255, 255, 255, 0.1);
+        color: white;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        font-size: 0.9rem;
+      }
+
+      .filter-button:hover,
+      .filter-button.active {
+        background-color: var(--primary-color);
+      }
+
+      /* Responsive Design */
+      @media (max-width: 768px) {
+        .container {
+          padding: 1rem;
+        }
+
+        .anime-grid,
+        .manga-grid {
+          grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+          gap: 1rem;
+          padding: 1rem;
+        }
+
+        .stat-value {
+          font-size: 1.5rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header class="header">
+        <h1>MyAnimeList History</h1>
+        <a href="/" class="nav-link">Back to Home</a>
+      </header>
+
+      <div class="tab-container">
+        <button class="tab-button active" data-tab="overview">Overview</button>
+        <button class="tab-button" data-tab="anime">Anime</button>
+        <button class="tab-button" data-tab="manga">Manga</button>
+        <button class="tab-button" data-tab="history">History</button>
+      </div>
+
+      <section id="overview" class="content-section active">
+        <div class="stats-container">
+          <div class="stat-card">
+            <div class="stat-value" id="total-anime">-</div>
+            <div class="stat-label">Total Anime</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="total-manga">-</div>
+            <div class="stat-label">Total Manga</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="watching-anime">-</div>
+            <div class="stat-label">Watching</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="reading-manga">-</div>
+            <div class="stat-label">Reading</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="completed-both">-</div>
+            <div class="stat-label">Completed</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="planned-both">-</div>
+            <div class="stat-label">Plan to Read/Watch</div>
+          </div>
+        </div>
+        <canvas id="watchTimeChart"></canvas>
+      </section>
+
+      <section id="anime" class="content-section">
+        <div class="filter-container">
+          <button class="filter-button active" data-status="all">All</button>
+          <button class="filter-button" data-status="watching">Watching</button>
+          <button class="filter-button" data-status="completed">
+            Completed
+          </button>
+          <button class="filter-button" data-status="plan to watch">
+            Plan to Watch
+          </button>
+        </div>
+        <div class="anime-grid" id="anime-grid">
+          <!-- Anime cards will be inserted here -->
+        </div>
+      </section>
+
+      <section id="manga" class="content-section">
+        <div class="filter-container">
+          <button class="filter-button active" data-status="all">All</button>
+          <button class="filter-button" data-status="reading">Reading</button>
+          <button class="filter-button" data-status="completed">
+            Completed
+          </button>
+          <button class="filter-button" data-status="plan to read">
+            Plan to Read
+          </button>
+        </div>
+        <div class="manga-grid" id="manga-grid">
+          <!-- Manga cards will be inserted here -->
+        </div>
+      </section>
+
+      <section id="history" class="content-section">
+        <div id="history-list">
+          <!-- History items will be inserted here -->
+        </div>
+      </section>
+    </div>
+
+    <script>
+      class MyAnimeListDashboard {
+        constructor() {
+          this.initializeData();
+          this.setupTabs();
+        }
+
+        async initializeData() {
+          try {
+            await this.fetchData();
+            this.updateStats();
+            this.renderAnimeGrid();
+            this.renderMangaGrid();
+            this.renderWatchTimeChart();
+            this.renderHistory();
+          } catch (error) {
+            console.error("Failed to initialize dashboard:", error);
+          }
+        }
+
+        async fetchData() {
+          try {
+            const [animeData, mangaData, statsData] = await Promise.all([
+              fetch("/api/myanimelist/anime").then((r) => r.json()),
+              fetch("/api/myanimelist/manga").then((r) => r.json()),
+              fetch("/api/myanimelist/stats").then((r) => r.json()),
+            ]);
+
+            this.anime = animeData;
+            this.manga = mangaData;
+            this.stats = statsData;
+
+            this.generateMonthlyData();
+          } catch (error) {
+            console.error("Error fetching data:", error);
+          }
+        }
+
+        generateMonthlyData() {
+          // Group media by month
+          const monthlyData = {};
+          [...(this.anime || []), ...(this.manga || [])].forEach((item) => {
+            const date = new Date(item.date_updated);
+            const monthKey = `${date.getFullYear()}-${String(
+              date.getMonth() + 1
+            ).padStart(2, "0")}`;
+            const monthLabel = date.toLocaleString("default", {
+              month: "short",
+              year: "numeric",
+            });
+
+            if (!monthlyData[monthKey]) {
+              monthlyData[monthKey] = {
+                month: monthLabel,
+                animeCount: 0,
+                mangaCount: 0,
+                hours: 0,
+              };
+            }
+
+            if ("episodes_watched" in item) {
+              monthlyData[monthKey].animeCount++;
+              // Assume average episode is 24 minutes (might be able to get from site)
+              monthlyData[monthKey].hours += (item.episodes_watched * 24) / 60;
+            } else if ("chapters_read" in item) {
+              monthlyData[monthKey].mangaCount++;
+              // Assume average chapter takes 15 minutes to read
+              monthlyData[monthKey].hours += (item.chapters_read * 15) / 60;
+            }
+          });
+
+          this.monthlyData = Object.entries(monthlyData)
+            .map(([key, data]) => ({
+              month: data.month,
+              animeCount: data.animeCount,
+              mangaCount: data.mangaCount,
+              hours: Math.round(data.hours * 10) / 10,
+            }))
+            .sort((a, b) => a.month.localeCompare(b.month))
+            .slice(-12);
+        }
+
+        updateStats() {
+          document.getElementById("total-anime").textContent =
+            this.stats.total_anime || "-";
+          document.getElementById("total-manga").textContent =
+            this.stats.total_manga || "-";
+          document.getElementById("watching-anime").textContent =
+            this.stats.watching || "-";
+          document.getElementById("reading-manga").textContent =
+            this.stats.reading || "-";
+          document.getElementById("completed-both").textContent =
+            (this.stats.completed_anime || 0) +
+              (this.stats.completed_manga || 0) || "-";
+          document.getElementById("planned-both").textContent =
+            (this.stats.planned_anime || 0) + (this.stats.planned_manga || 0) ||
+            "-";
+        }
+
+        renderAnimeGrid() {
+          const grid = document.getElementById("anime-grid");
+          if (!this.anime || !grid) return;
+
+          grid.innerHTML = this.anime
+            .map(
+              (item) => `
+        <div class="anime-card" data-status="${(
+          item.status || "unknown"
+        ).toLowerCase()}">
+          <a href="${item.link}" class="anime-link" target="_blank">
+            <div class="anime-cover">
+              <img 
+                src="${item.image_url || "/api/placeholder/225/319"}" 
+                alt="${item.title}" 
+                loading="lazy"
+                onerror="this.onerror=null; this.src='/api/placeholder/225/319';"
+              />
+            </div>
+            <div class="anime-info">
+              <div>
+                <div class="anime-title">${item.title}</div>
+                <div class="anime-type">${item.media_type || ""}</div>
+                ${
+                  item.score
+                    ? `
+                  <div class="anime-score">
+                    Score: ${item.score.toFixed(1)}
+                  </div>
+                `
+                    : ""
+                }
+              </div>
+              
+              <div class="anime-meta">
+                ${
+                  item.date_updated
+                    ? `Updated on ${new Date(
+                        item.date_updated
+                      ).toLocaleDateString()}`
+                    : ""
+                }
+                ${
+                  item.episodes_watched
+                    ? `
+                  <div class="episode-progress">
+                    Episode ${item.episodes_watched}/${
+                        item.total_episodes || "?"
+                      }
+                    <div class="anime-progress">
+                      <div 
+                        class="progress-bar" 
+                        style="width: ${
+                          item.total_episodes
+                            ? (item.episodes_watched / item.total_episodes) *
+                              100
+                            : 0
+                        }%">
+                      </div>
+                    </div>
+                  </div>
+                `
+                    : ""
+                }
+              </div>
+            </div>
+          </a>
+        </div>
+      `
+            )
+            .join("");
+        }
+
+        renderMangaGrid() {
+          const grid = document.getElementById("manga-grid");
+          if (!this.manga || !grid) return;
+
+          grid.innerHTML = this.manga
+            .map(
+              (item) => `
+                <div class="manga-card" data-status="${(
+                  item.status || "unknown"
+                ).toLowerCase()}">
+                  <a href="${item.link}" class="manga-link" target="_blank">
+                    <div class="manga-cover">
+                      <img
+                        src="${item.image_url || "/api/placeholder/225/319"}"
+                        alt="${item.title}"
+                        loading="lazy"
+                        onerror="this.onerror=null; this.src='/api/placeholder/225/319';"
+                      />
+                    </div>
+                    <div class="manga-info">
+                      <div>
+                        <div class="manga-title">${item.title}</div>
+                        <div class="manga-type">${item.media_type || ""}</div>
+                        ${
+                          item.score
+                            ? `
+                          <div class="manga-score">
+                            Score: ${item.score.toFixed(1)}
+                          </div>
+                        `
+                            : ""
+                        }
+                      </div>
+
+                      <div class="manga-meta">
+                        ${
+                          item.date_updated
+                            ? `Updated on ${new Date(
+                                item.date_updated
+                              ).toLocaleDateString()}`
+                            : ""
+                        }
+                        ${
+                          item.chapters_read
+                            ? `
+                          <div class="chapter-progress">
+                            Chapter ${item.chapters_read}/${
+                                item.total_chapters || "?"
+                              }
+                            <div class="manga-progress">
+                              <div
+                                class="progress-bar"
+                                style="width: ${
+                                  item.total_chapters
+                                    ? (item.chapters_read /
+                                        item.total_chapters) *
+                                      100
+                                    : 0
+                                }%">
+                              </div>
+                            </div>
+                          </div>
+                        `
+                            : ""
+                        }
+                      </div>
+                    </div>
+                  </a>
+                </div>
+              `
+            )
+            .join("");
+        }
+
+        renderWatchTimeChart() {
+          const ctx = document
+            .getElementById("watchTimeChart")
+            .getContext("2d");
+          new Chart(ctx, {
+            type: "line",
+            data: {
+              labels: this.monthlyData.map((d) => d.month),
+              datasets: [
+                {
+                  label: "Watch/Read Time (hours)",
+                  data: this.monthlyData.map((d) => d.hours),
+                  borderColor: "#00df54",
+                  tension: 0.4,
+                  fill: false,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              plugins: {
+                legend: {
+                  position: "top",
+                  labels: { color: "#ffffff" },
+                },
+                title: {
+                  display: true,
+                  text: "Monthly Activity",
+                  color: "#ffffff",
+                },
+              },
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  grid: { color: "rgba(255, 255, 255, 0.1)" },
+                  ticks: {
+                    color: "#ffffff",
+                    callback: function (value) {
+                      return value + "h";
+                    },
+                  },
+                },
+                x: {
+                  grid: { color: "rgba(255, 255, 255, 0.1)" },
+                  ticks: { color: "#ffffff" },
+                },
+              },
+            },
+          });
+        }
+
+        renderHistory() {
+          const historyContainer = document.getElementById("history-list");
+          if (!historyContainer) return;
+
+          const allItems = [
+            ...(this.anime || []).map((item) => ({ ...item, type: "anime" })),
+            ...(this.manga || []).map((item) => ({ ...item, type: "manga" })),
+          ];
+
+          const sortedItems = allItems
+            .sort((a, b) => new Date(b.date_updated) - new Date(a.date_updated))
+            .slice(0, 20);
+
+          historyContainer.innerHTML = `
+            <div class="recent-activity">
+              ${sortedItems
+                .map(
+                  (item) => `
+                <div class="history-item">
+                  <div class="history-title">${item.title}</div>
+                  ${
+                    item.score
+                      ? `
+                    <div class="media-score">
+                      Score: ${item.score.toFixed(1)}
+                    </div>
+                  `
+                      : ""
+                  }
+                  <div class="history-meta">
+                    ${
+                      item.date_updated
+                        ? `Updated: ${new Date(
+                            item.date_updated
+                          ).toLocaleDateString()}`
+                        : ""
+                    }
+                    ${
+                      item.type === "anime" && item.episodes_watched
+                        ? `<br>Episode ${item.episodes_watched}/${
+                            item.total_episodes || "?"
+                          }`
+                        : ""
+                    }
+                    ${
+                      item.type === "manga" && item.chapters_read
+                        ? `<br>Chapter ${item.chapters_read}/${
+                            item.total_chapters || "?"
+                          }`
+                        : ""
+                    }
+                  </div>
+                </div>
+              `
+                )
+                .join("")}
+            </div>
+          `;
+        }
+
+        setupTabs() {
+          const tabs = document.querySelectorAll(".tab-button");
+          tabs.forEach((tab) => {
+            tab.addEventListener("click", () => {
+              tabs.forEach((t) => t.classList.remove("active"));
+              tab.classList.add("active");
+
+              document
+                .querySelectorAll(".content-section")
+                .forEach((section) => {
+                  section.classList.remove("active");
+                });
+              document.getElementById(tab.dataset.tab).classList.add("active");
+            });
+          });
+
+          document
+            .querySelectorAll(".filter-container")
+            .forEach((container) => {
+              const buttons = container.querySelectorAll(".filter-button");
+              buttons.forEach((button) => {
+                button.addEventListener("click", () => {
+                  buttons.forEach((btn) => btn.classList.remove("active"));
+                  button.classList.add("active");
+                  this.filterMedia(
+                    button.dataset.status,
+                    container.closest("section").id
+                  );
+                });
+              });
+            });
+        }
+
+        filterMedia(status, sectionId) {
+          const cards = document.querySelectorAll(
+            `#${sectionId} .${sectionId}-card`
+          );
+          cards.forEach((card) => {
+            const shouldShow =
+              status === "all" || card.dataset.status === status;
+            card.style.display = shouldShow ? "block" : "none";
+          });
+        }
+      }
+
+      // Initialize the dashboard
+      document.addEventListener("DOMContentLoaded", () => {
+        new MyAnimeListDashboard();
+      });
+    </script>
+  </body>
+</html>

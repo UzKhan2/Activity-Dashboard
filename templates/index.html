@@ -3,547 +3,307 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Trakt.tv Watch History Dashboard</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+    <meta
+      name="description"
+      content="Track your watching journey across movies, shows, anime, books, and coding."
+    />
+    <meta name="theme-color" content="#00df54" />
+    <meta name="robots" content="index, follow" />
+
+    <meta property="og:title" content="Activity Dashboard" />
+    <meta
+      property="og:description"
+      content="Track your watching journey across movies, shows, anime, books, and coding."
+    />
+    <meta property="og:type" content="website" />
+
+    <title>Activity Dashboard</title>
+
+    <!-- Preload assets -->
+    <link rel="preload" href="/static/css/styles.css" as="style" />
+    <link rel="preconnect" href="https://api.themoviedb.org" />
+
+    <link rel="icon" type="image/x-icon" href="/static/favicon/favicon.ico" />
+    <link rel="stylesheet" href="/static/css/styles.css" />
+
     <style>
-      /* Base Variables */
       :root {
-        --primary-color: #ed1c24;
-        --background-color: #1a1a1a;
-        --card-color: #252525;
-        --text-color: #ffffff;
-        --text-muted: #999;
-        --card-hover: #2d2d2d;
-        --border-radius: 8px;
+        --card-bg: var(--card-color);
+        --transition-base: 0.3s ease;
+        --spacing-base: 1rem;
+        --border-radius-base: var(--border-radius);
       }
 
-      /* Reset and Base Styles */
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-
-      body {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Oxygen, Ubuntu, Cantarell, sans-serif;
-        background-color: var(--background-color);
-        color: var(--text-color);
-        line-height: 1.6;
-      }
-
-      /* Layout */
-      .container {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 2rem;
-      }
-
-      /* Header */
-      header {
+      .hero {
         text-align: center;
+        padding: clamp(2rem, 8vw, 4rem) var(--spacing-base);
+        background-image: linear-gradient(
+            rgba(0, 0, 0, 0.7),
+            rgba(0, 0, 0, 0.7)
+          ),
+          url("/api/placeholder/1920/1080");
+        background-size: cover;
+        background-position: center;
+        color: white;
+        position: relative;
+        border-radius: 24px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+          0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        width: 100%;
         margin-bottom: 2rem;
-        padding: 1rem;
-        background-color: var(--card-color);
-        border-radius: var(--border-radius);
       }
 
-      h1 {
+      .hero__title {
+        font-size: clamp(2rem, 5vw, 3rem);
+        margin-bottom: var(--spacing-base);
+        color: white;
+        line-height: 1.2;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+      }
+
+      .hero__subtitle {
+        font-size: clamp(1rem, 3vw, 1.2rem);
+        margin-bottom: calc(var(--spacing-base) * 2);
+        color: rgba(255, 255, 255, 0.9);
+        max-width: 60ch;
+        margin-inline: auto;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+      }
+
+      .feature-card {
+        background-color: var(--card-bg);
+        padding: calc(var(--spacing-base) * 2);
+        border-radius: 16px;
+        text-align: center;
+        transition: transform var(--transition-base);
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-base);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      .feature-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+      }
+
+      .feature-icon {
+        font-size: 2rem;
         color: var(--primary-color);
-        margin-bottom: 0.5rem;
+        line-height: 1;
       }
 
-      h2 {
-        color: var(--text-color);
+      .quick-stats {
+        background-color: var(--card-bg);
+        padding: calc(var(--spacing-base) * 2);
+        border-radius: 24px;
+        width: 100%;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      .quick-stats__title {
+        text-align: center;
         margin-bottom: 1.5rem;
       }
 
-      /* Stats Container */
-      .stats-container {
+      .stats-preview {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 1rem;
-        margin-bottom: 2rem;
+        grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr));
+        gap: var(--spacing-base);
       }
 
-      .stat-card {
-        background-color: rgba(255, 255, 255, 0.1);
-        padding: 1.5rem;
-        border-radius: var(--border-radius);
+      .stat-preview-item {
         text-align: center;
-        transition: transform 0.3s ease;
+        padding: var(--spacing-base);
+        background-color: rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        transition: transform var(--transition-base);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       }
 
-      .stat-card:hover {
-        transform: translateY(-5px);
+      .stat-preview-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
       }
 
-      .stat-value {
-        font-size: 2rem;
-        font-weight: bold;
+      .stat-preview-value {
+        font-size: 1.5rem;
+        font-weight: 700;
         color: var(--primary-color);
-        margin-bottom: 0.5rem;
+        margin-bottom: calc(var(--spacing-base) * 0.5);
       }
 
-      .stat-label {
-        font-size: 0.9rem;
-        color: var(--text-muted);
+      .loading-skeleton {
+        background: linear-gradient(
+          90deg,
+          var(--card-bg) 25%,
+          rgba(255, 255, 255, 0.1) 50%,
+          var(--card-bg) 75%
+        );
+        background-size: 200% 100%;
+        animation: loading 1.5s infinite;
       }
 
-      /* Tab Container */
-      .tab-container {
-        display: flex;
-        gap: 1rem;
-        margin-bottom: 2rem;
-        background-color: var(--card-color);
-        padding: 1rem;
-        border-radius: var(--border-radius);
-      }
-
-      .tab-button {
-        padding: 0.75rem 1.5rem;
-        border: none;
-        background-color: transparent;
-        color: var(--text-color);
-        cursor: pointer;
-        border-radius: 4px;
-        transition: background-color 0.3s;
-      }
-
-      .tab-button:hover {
-        background-color: rgba(255, 255, 255, 0.1);
-      }
-
-      .tab-button.active {
-        background-color: var(--primary-color);
-      }
-
-      /* Content Sections */
-      .content-section {
-        display: none;
-        background-color: var(--card-color);
-        padding: 1.5rem;
-        border-radius: var(--border-radius);
-        margin-bottom: 1rem;
-      }
-
-      .content-section.active {
-        display: block;
-        animation: fadeIn 0.3s ease-out;
-      }
-
-      /* Media Grid */
-      .media-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-        gap: 1.5rem;
-        margin-top: 1rem;
-      }
-
-      .media-card {
-        background-color: rgba(255, 255, 255, 0.1);
-        border-radius: var(--border-radius);
-        overflow: hidden;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-      }
-
-      .media-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-      }
-
-      .media-poster {
-        width: 100%;
-        height: 300px;
-        background-color: #333;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        overflow: hidden;
-      }
-
-      .media-poster img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        transition: transform 0.3s ease;
-      }
-
-      .placeholder-poster {
-        width: 100%;
-        height: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-        padding: 1rem;
-        background-color: #333;
-        color: var(--text-muted);
-      }
-
-      .media-info {
-        padding: 1rem;
-      }
-
-      .media-title {
-        font-weight: bold;
-        margin-bottom: 0.5rem;
-      }
-
-      .media-meta {
-        font-size: 0.9rem;
-        color: var(--text-muted);
-      }
-
-      #watchTimeChart {
-        margin-top: 2rem;
-        background-color: rgba(255, 255, 255, 0.1);
-        padding: 1rem;
-        border-radius: var(--border-radius);
-      }
-
-      /* Animations */
-      @keyframes fadeIn {
-        from {
-          opacity: 0;
-          transform: translateY(10px);
+      @keyframes loading {
+        0% {
+          background-position: 200% 0;
         }
-        to {
-          opacity: 1;
-          transform: translateY(0);
+        100% {
+          background-position: -200% 0;
         }
       }
 
-      /* Responsive Design */
       @media (max-width: 768px) {
-        .container {
+        .hero,
+        .quick-stats {
+          border-radius: 16px;
+          margin: 0 0 1rem 0;
+        }
+      }
+
+      @media print {
+        .hero {
+          background: none;
+          color: black;
+          margin: 0;
           padding: 1rem;
         }
-        .stats-container {
-          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        }
-        .media-grid {
-          grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-        }
-        .media-poster {
-          height: 225px;
+
+        .feature-card {
+          break-inside: avoid;
         }
       }
     </style>
   </head>
   <body>
-    <div class="container">
-      <header>
-        <h1>Trakt.tv Watch History</h1>
-        <p>Your personal media tracking dashboard</p>
-      </header>
+    <main class="container">
+      <section class="hero" aria-labelledby="hero-title">
+        <h1 id="hero-title" class="hero__title">View Your Activity</h1>
+        <p class="hero__subtitle">
+          Keep track of all your viewing, reading, gaming, and other activities
+        </p>
+        <nav class="button-group" aria-label="Main navigation">
+          <div class="button-wrapper">
+            <a href="/trakt" class="cta-button">
+              <span>Trakt</span>
+            </a>
+          </div>
+          <div class="button-wrapper">
+            <a href="/letterboxd" class="cta-button">
+              <span>Letterboxd</span>
+            </a>
+          </div>
+          <div class="button-wrapper">
+            <a href="/myanimelist" class="cta-button">
+              <span>MyAnimeList</span>
+            </a>
+          </div>
+          <div class="button-wrapper">
+            <a href="/goodreads" class="cta-button">
+              <span>Goodreads</span>
+            </a>
+          </div>
+          <div class="button-wrapper">
+            <a href="/trueachievements" class="cta-button">
+              <span>Trueachievements</span>
+            </a>
+          </div>
+          <div class="button-wrapper">
+            <a href="/github" class="cta-button">
+              <span>GitHub</span>
+            </a>
+          </div>
+        </nav>
+      </section>
 
-      <div class="tab-container">
-        <button class="tab-button active" data-tab="overview">Overview</button>
-        <button class="tab-button" data-tab="shows">Shows</button>
-        <button class="tab-button" data-tab="movies">Movies</button>
-        <button class="tab-button" data-tab="history">Recent History</button>
-      </div>
-
-      <section id="overview" class="content-section active">
-        <div class="stats-container">
-          <div class="stat-card">
-            <div class="stat-value" id="total-shows">-</div>
-            <div class="stat-label">Shows Watched</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-value" id="total-movies">-</div>
-            <div class="stat-label">Movies Watched</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-value" id="total-episodes">-</div>
-            <div class="stat-label">Episodes Watched</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-value" id="total-time">-</div>
-            <div class="stat-label">Total Watch Time (hours)</div>
-          </div>
+      <section class="quick-stats" aria-labelledby="stats-title">
+        <h2 id="stats-title" class="quick-stats__title">
+          Your Watching Overview
+        </h2>
+        <div
+          class="stats-preview"
+          id="quick-stats-container"
+          aria-live="polite"
+        >
+          <!-- Stats come in with JavaScript -->
         </div>
-        <canvas id="watchTimeChart"></canvas>
       </section>
-
-      <section id="shows" class="content-section">
-        <h2>Watched Shows</h2>
-        <div class="media-grid" id="shows-grid"></div>
-      </section>
-
-      <section id="movies" class="content-section">
-        <h2>Watched Movies</h2>
-        <div class="media-grid" id="movies-grid"></div>
-      </section>
-
-      <section id="history" class="content-section">
-        <h2>Recent Watch History</h2>
-        <div id="history-list"></div>
-      </section>
-    </div>
+    </main>
 
     <script>
-      class TraktDashboard {
-        constructor() {
-          this.initializeData();
+      const formatNumber = (num) => new Intl.NumberFormat().format(num);
+
+      const createLoadingSkeleton = () => {
+        const container = document.getElementById("quick-stats-container");
+        const skeletonHTML = Array(4)
+          .fill(
+            `
+                <div class="stat-preview-item">
+                    <div class="stat-preview-value loading-skeleton" style="height: 2rem; width: 80%; margin: 0 auto;"></div>
+                    <div class="stat-label loading-skeleton" style="height: 1rem; width: 60%; margin: 0.5rem auto;"></div>
+                </div>
+            `
+          )
+          .join("");
+        container.innerHTML = skeletonHTML;
+      };
+
+      const initializeStats = async () => {
+        createLoadingSkeleton();
+
+        try {
+          const response = await fetch("/api/trakt/stats");
+          if (!response.ok) throw new Error("Failed to fetch stats");
+
+          const stats = await response.json();
+          const statsContainer = document.getElementById(
+            "quick-stats-container"
+          );
+
+          statsContainer.innerHTML = `
+                    <div class="stat-preview-item">
+                        <div class="stat-preview-value">${formatNumber(
+                          stats.total_shows
+                        )}</div>
+                        <div class="stat-label">Shows Watched</div>
+                    </div>
+                    <div class="stat-preview-item">
+                        <div class="stat-preview-value">${formatNumber(
+                          stats.total_movies
+                        )}</div>
+                        <div class="stat-label">Movies Watched</div>
+                    </div>
+                    <div class="stat-preview-item">
+                        <div class="stat-preview-value">${formatNumber(
+                          stats.total_watch_time
+                        )}</div>
+                        <div class="stat-label">Hours Watched</div>
+                    </div>
+                    <div class="stat-preview-item">
+                        <div class="stat-preview-value">${formatNumber(
+                          stats.total_episodes
+                        )}</div>
+                        <div class="stat-label">Episodes Watched</div>
+                    </div>
+                `;
+        } catch (error) {
+          console.error("Error loading quick stats:", error);
+          document.getElementById("quick-stats-container").innerHTML = `
+                    <div class="error-message">
+                        Unable to load statistics. Please try again later.
+                    </div>
+                `;
         }
+      };
 
-        async initializeData() {
-          try {
-            await this.fetchData();
-            this.updateStats();
-            this.renderShows();
-            this.renderMovies();
-            this.renderHistory();
-            this.renderWatchTimeChart();
-          } catch (error) {
-            console.error("Failed to initialize dashboard:", error);
-          }
-        }
-
-        async fetchData() {
-          try {
-            const [stats, shows, movies, history, watchTime] =
-              await Promise.all([
-                fetch("/api/stats").then((r) => r.json()),
-                fetch("/api/shows").then((r) => r.json()),
-                fetch("/api/movies").then((r) => r.json()),
-                fetch("/api/history").then((r) => r.json()),
-                fetch("/api/watch-time").then((r) => r.json()),
-              ]);
-
-            // Add logging here, after the data is fetched
-            console.log("Shows data:", shows);
-            console.log("First show poster URL:", shows[0]?.poster_url);
-            console.log("First show images:", shows[0]?.images);
-
-            this.stats = stats;
-            this.shows = shows;
-            this.movies = movies;
-            this.history = history;
-            this.watchTimeData = watchTime;
-          } catch (error) {
-            console.error("Error fetching data:", error);
-          }
-        }
-
-        updateStats() {
-          try {
-            const stats = {
-              "total-shows": this.stats.total_shows,
-              "total-movies": this.stats.total_movies,
-              "total-episodes": this.stats.total_episodes,
-              "total-time": this.stats.total_watch_time,
-            };
-
-            Object.entries(stats).forEach(([id, value]) => {
-              const element = document.getElementById(id);
-              if (element) {
-                if (value === null || value === undefined) {
-                  element.textContent = "-";
-                } else if (id === "total-time") {
-                  element.textContent = Math.round(value).toLocaleString();
-                } else {
-                  element.textContent = value.toLocaleString();
-                }
-              }
-            });
-          } catch (error) {
-            console.error("Error updating stats:", error);
-          }
-        }
-
-        renderShows() {
-          try {
-            const grid = document.getElementById("shows-grid");
-            if (!this.shows || !grid) return;
-
-            grid.innerHTML = this.shows
-              .map(
-                (show) => `
-                        <div class="media-card">
-                            <div class="media-poster">
-                                ${
-                                  show.poster_url
-                                    ? `<img src="${show.poster_url}" alt="${show.title}" />`
-                                    : `<div class="placeholder-poster"><span>${show.title}</span></div>`
-                                }
-                            </div>
-                            <div class="media-info">
-                                <div class="media-title">${show.title}</div>
-                                <div class="media-meta">
-                                    ${show.year || ""} • ${
-                  show.episodes_watched
-                } episodes
-                                </div>
-                            </div>
-                        </div>
-                    `
-              )
-              .join("");
-          } catch (error) {
-            console.error("Error rendering shows:", error);
-          }
-        }
-
-        renderMovies() {
-          try {
-            const grid = document.getElementById("movies-grid");
-            if (!this.movies || !grid) return;
-
-            grid.innerHTML = this.movies
-              .map(
-                (movie) => `
-                        <div class="media-card">
-                            <div class="media-poster">
-                                <img src="/api/placeholder/200/300" alt="${
-                                  movie.title
-                                }" />
-                            </div>
-                            <div class="media-info">
-                                <div class="media-title">${movie.title}</div>
-                                <div class="media-meta">
-                                    ${movie.year || ""} • ${new Date(
-                  movie.last_watched_at
-                ).toLocaleDateString()}
-                                </div>
-                            </div>
-                        </div>
-                    `
-              )
-              .join("");
-          } catch (error) {
-            console.error("Error rendering movies:", error);
-          }
-        }
-
-        renderHistory() {
-          try {
-            const list = document.getElementById("history-list");
-            if (!this.history || !list) return;
-
-            list.innerHTML = this.history
-              .map((item) => {
-                if (item.type === "episode") {
-                  return `
-                        <div class="history-item">
-                            <div class="history-title">${item.show_title}</div>
-                            <div class="history-episode">${
-                              item.full_episode_title
-                            }</div>
-                            <div class="history-time">
-                                Watched on ${new Date(
-                                  item.watched_at
-                                ).toLocaleString("en-US", {
-                                  weekday: "short",
-                                  year: "numeric",
-                                  month: "short",
-                                  day: "numeric",
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                })}
-                            </div>
-                        </div>
-                    `;
-                } else if (item.type === "movie") {
-                  return `
-                        <div class="history-item">
-                            <div class="history-title">${item.movie_title} ${
-                    item.year ? `(${item.year})` : ""
-                  }</div>
-                            <div class="history-time">
-                                Watched on ${new Date(
-                                  item.watched_at
-                                ).toLocaleString("en-US", {
-                                  weekday: "short",
-                                  year: "numeric",
-                                  month: "short",
-                                  day: "numeric",
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                })}
-                            </div>
-                        </div>
-                    `;
-                }
-              })
-              .join("");
-          } catch (error) {
-            console.error("Error rendering history:", error);
-          }
-        }
-        renderWatchTimeChart() {
-          try {
-            if (!this.watchTimeData || !this.watchTimeData.months) return;
-
-            const ctx = document
-              .getElementById("watchTimeChart")
-              .getContext("2d");
-            new Chart(ctx, {
-              type: "line",
-              data: {
-                labels: this.watchTimeData.months.map((m) => m.month),
-                datasets: [
-                  {
-                    label: "Watch Time (hours)",
-                    data: this.watchTimeData.months.map((m) => m.hours),
-                    borderColor: "#ed1c24",
-                    tension: 0.4,
-                    fill: false,
-                  },
-                ],
-              },
-              options: {
-                responsive: true,
-                plugins: {
-                  legend: {
-                    position: "top",
-                    labels: { color: "#ffffff" },
-                  },
-                  title: {
-                    display: true,
-                    text: "Monthly Watch Time",
-                    color: "#ffffff",
-                  },
-                },
-                scales: {
-                  y: {
-                    beginAtZero: true,
-                    grid: { color: "rgba(255, 255, 255, 0.1)" },
-                    ticks: { color: "#ffffff" },
-                  },
-                  x: {
-                    grid: { color: "rgba(255, 255, 255, 0.1)" },
-                    ticks: { color: "#ffffff" },
-                  },
-                },
-              },
-            });
-          } catch (error) {
-            console.error("Error rendering watch time chart:", error);
-          }
-        }
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", initializeStats);
+      } else {
+        initializeStats();
       }
-
-      // Tab switching functionality
-      document.querySelectorAll(".tab-button").forEach((button) => {
-        button.addEventListener("click", () => {
-          document
-            .querySelectorAll(".tab-button")
-            .forEach((btn) => btn.classList.remove("active"));
-          document
-            .querySelectorAll(".content-section")
-            .forEach((section) => section.classList.remove("active"));
-          button.classList.add("active");
-          document.getElementById(button.dataset.tab).classList.add("active");
-        });
-      });
-
-      // Initialize the dashboard when the page loads
-      document.addEventListener("DOMContentLoaded", () => {
-        new TraktDashboard();
-      });
     </script>
+    <script src="/static/js/button-hover.js"></script>
+    <!-- Update file -->
   </body>
 </html>

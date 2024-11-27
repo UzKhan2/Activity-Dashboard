@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/x-icon" href="/static/favicon/trakt.ico" />
+    <link
+      rel="shortcut icon"
+      type="image/x-icon"
+      href="/static/favicon/trakt.ico"
+    />
+    <title>Trakt</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+    <link rel="stylesheet" href="/static/css/styles.css" />
+
+    <style>
+      /* Tab Container */
+      .tab-container {
+        background-color: #2a2a2a;
+        padding: 0.5rem;
+        margin-bottom: 2rem;
+      }
+
+      .tab-button {
+        flex: 1;
+        padding: 0.75rem 1.5rem;
+        border: none;
+        background-color: transparent;
+        color: #ffffff;
+        cursor: pointer;
+        text-align: center;
+        transition: background-color 0.3s;
+        border-radius: 4px;
+      }
+
+      /* Chart specific styles */
+      #watchTimeChart {
+        margin-top: 2rem;
+        background-color: rgba(255, 255, 255, 0.1);
+        padding: 1rem;
+        border-radius: var(--border-radius);
+      }
+
+      /* Media Specific Overrides */
+      .media-poster {
+        height: 300px;
+      }
+
+      @media (max-width: 768px) {
+        .media-poster {
+          height: 225px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header class="header">
+        <h1>Trakt.tv Watch History</h1>
+        <a href="/" class="nav-link">Back to Home</a>
+      </header>
+
+      <div class="tab-container">
+        <button class="tab-button active" data-tab="overview">Overview</button>
+        <button class="tab-button" data-tab="shows">Shows</button>
+        <button class="tab-button" data-tab="movies">Movies</button>
+        <button class="tab-button" data-tab="history">History</button>
+      </div>
+
+      <section id="overview" class="content-section active">
+        <div class="stats-container">
+          <div class="stat-card">
+            <div class="stat-value" id="total-shows">-</div>
+            <div class="stat-label">Shows Watched</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="total-movies">-</div>
+            <div class="stat-label">Movies Watched</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="total-episodes">-</div>
+            <div class="stat-label">Episodes Watched</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="total-time">-</div>
+            <div class="stat-label">Total Watch Time (hours)</div>
+          </div>
+        </div>
+        <canvas id="watchTimeChart"></canvas>
+      </section>
+
+      <section id="shows" class="content-section">
+        <h2>Watched Shows</h2>
+        <div class="media-grid" id="shows-grid"></div>
+      </section>
+
+      <section id="movies" class="content-section">
+        <h2>Watched Movies</h2>
+        <div class="media-grid" id="movies-grid"></div>
+      </section>
+
+      <section id="history" class="content-section">
+        <h2>Recent Watch History</h2>
+        <div id="history-list"></div>
+      </section>
+    </div>
+
+    <script>
+      class TraktDashboard {
+        constructor() {
+          this.initializeData();
+        }
+
+        async initializeData() {
+          try {
+            await this.fetchData();
+            this.updateStats();
+            this.renderShows();
+            this.renderMovies();
+            this.renderHistory();
+            this.renderWatchTimeChart();
+          } catch (error) {
+            console.error("Failed to initialize dashboard:", error);
+          }
+        }
+
+        async fetchData() {
+          try {
+            const [stats, shows, movies, history, watchTime] =
+              await Promise.all([
+                fetch("/api/trakt/stats").then((r) => r.json()), // Dont forget to change api for rest of trakt
+                fetch("/api/shows").then((r) => r.json()),
+                fetch("/api/movies").then((r) => r.json()),
+                fetch("/api/history").then((r) => r.json()),
+                fetch("/api/watch-time").then((r) => r.json()),
+              ]);
+
+            // Debug Logs
+            console.log("Shows data:", shows);
+            console.log("First show poster URL:", shows[0]?.poster_url);
+            console.log("First show images:", shows[0]?.images);
+
+            this.stats = stats;
+            this.shows = shows;
+            this.movies = movies;
+            this.history = history;
+            this.watchTimeData = watchTime;
+          } catch (error) {
+            console.error("Error fetching data:", error);
+          }
+        }
+
+        updateStats() {
+          try {
+            const stats = {
+              "total-shows": this.stats.total_shows,
+              "total-movies": this.stats.total_movies,
+              "total-episodes": this.stats.total_episodes,
+              "total-time": this.stats.total_watch_time,
+            };
+
+            Object.entries(stats).forEach(([id, value]) => {
+              const element = document.getElementById(id);
+              if (element) {
+                if (value === null || value === undefined) {
+                  element.textContent = "-";
+                } else if (id === "total-time") {
+                  element.textContent = Math.round(value).toLocaleString();
+                } else {
+                  element.textContent = value.toLocaleString();
+                }
+              }
+            });
+          } catch (error) {
+            console.error("Error updating stats:", error);
+          }
+        }
+
+        renderShows() {
+          try {
+            const grid = document.getElementById("shows-grid");
+            if (!this.shows || !grid) return;
+
+            grid.innerHTML = this.shows
+              .map(
+                (show) => `
+                        <div class="media-card">
+                            <div class="media-poster">
+                                ${
+                                  show.poster_url
+                                    ? `<img src="${show.poster_url}" alt="${show.title}" />`
+                                    : `<div class="placeholder-poster"><span>${show.title}</span></div>`
+                                }
+                            </div>
+                            <div class="media-info">
+                                <div class="media-title">${show.title}</div>
+                                <div class="media-meta">
+                                    ${show.year || ""} • ${
+                  show.episodes_watched
+                } episodes
+                                </div>
+                            </div>
+                        </div>
+                    `
+              )
+              .join("");
+          } catch (error) {
+            console.error("Error rendering shows:", error);
+          }
+        }
+
+        renderMovies() {
+          try {
+            const grid = document.getElementById("movies-grid");
+            if (!this.movies || !grid) return;
+
+            grid.innerHTML = this.movies
+              .map(
+                (movie) => `
+                    <div class="media-card">
+                        <div class="media-poster">
+                            ${
+                              movie.poster_url
+                                ? `<img src="${movie.poster_url}" alt="${movie.title}" />`
+                                : `<div class="placeholder-poster"><span>${movie.title}</span></div>`
+                            }
+                        </div>
+                        <div class="media-info">
+                            <div class="media-title">${movie.title}</div>
+                            <div class="media-meta">
+                                ${movie.year || ""} • ${new Date(
+                  movie.last_watched_at
+                ).toLocaleDateString()}
+                            </div>
+                        </div>
+                    </div>
+                `
+              )
+              .join("");
+          } catch (error) {
+            console.error("Error rendering movies:", error);
+          }
+        }
+
+        renderHistory() {
+          try {
+            const list = document.getElementById("history-list");
+            if (!this.history || !list) return;
+
+            // Add a container style
+            list.style.display = "flex";
+            list.style.flexDirection = "column";
+            list.style.gap = "15px";
+            list.style.padding = "20px";
+
+            list.innerHTML = this.history
+              .map((item) => {
+                if (item.type === "episode") {
+                  return `
+                        <div style="
+                            background-color: #252525;
+                            border-radius: 15px;
+                            padding: 15px 20px;
+                            margin-bottom: 5px;
+                            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+                        ">
+                            <div style="
+                                color: white;
+                                font-size: 18px;
+                                margin-bottom: 5px;
+                            ">${item.show_title}</div>
+                            <div style="
+                                color: var(--primary-color);
+                                font-size: 16px;
+                                margin-bottom: 5px;
+                            ">${item.full_episode_title}</div>
+                            <div style="
+                                color: #999;
+                                font-size: 14px;
+                            ">Watched on ${new Date(
+                              item.watched_at
+                            ).toLocaleString("en-US", {
+                              weekday: "short",
+                              year: "numeric",
+                              month: "short",
+                              day: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}</div>
+                        </div>
+                    `;
+                } else if (item.type === "movie") {
+                  return `
+                        <div style="
+                            background-color: #252525;
+                            border-radius: 15px;
+                            padding: 15px 20px;
+                            margin-bottom: 5px;
+                            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+                        ">
+                            <div style="
+                                color: white;
+                                font-size: 18px;
+                                margin-bottom: 5px;
+                            ">${item.movie_title} ${
+                    item.year ? `(${item.year})` : ""
+                  }</div>
+                            <div style="
+                                color: #999;
+                                font-size: 14px;
+                            ">Watched on ${new Date(
+                              item.watched_at
+                            ).toLocaleString("en-US", {
+                              weekday: "short",
+                              year: "numeric",
+                              month: "short",
+                              day: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}</div>
+                        </div>
+                    `;
+                }
+                return "";
+              })
+              .join("");
+          } catch (error) {
+            console.error("Error rendering history:", error);
+          }
+        }
+
+        renderWatchTimeChart() {
+          try {
+            if (!this.watchTimeData || !this.watchTimeData.months) return;
+
+            const ctx = document
+              .getElementById("watchTimeChart")
+              .getContext("2d");
+            new Chart(ctx, {
+              type: "line",
+              data: {
+                labels: this.watchTimeData.months.map((m) => m.month),
+                datasets: [
+                  {
+                    label: "Watch Time (hours)",
+                    data: this.watchTimeData.months.map((m) => m.hours),
+                    borderColor: "#00df54",
+                    tension: 0.4,
+                    fill: false,
+                  },
+                ],
+              },
+              options: {
+                responsive: true,
+                plugins: {
+                  legend: {
+                    position: "top",
+                    labels: { color: "#ffffff" },
+                  },
+                  title: {
+                    display: true,
+                    text: "Monthly Watch Time",
+                    color: "#ffffff",
+                  },
+                },
+                scales: {
+                  y: {
+                    beginAtZero: true,
+                    grid: { color: "rgba(255, 255, 255, 0.1)" },
+                    ticks: { color: "#ffffff" },
+                  },
+                  x: {
+                    grid: { color: "rgba(255, 255, 255, 0.1)" },
+                    ticks: { color: "#ffffff" },
+                  },
+                },
+              },
+            });
+          } catch (error) {
+            console.error("Error rendering watch time chart:", error);
+          }
+        }
+      }
+
+      // Tab switching functionality
+      document.querySelectorAll(".tab-button").forEach((button) => {
+        button.addEventListener("click", () => {
+          document
+            .querySelectorAll(".tab-button")
+            .forEach((btn) => btn.classList.remove("active"));
+          document
+            .querySelectorAll(".content-section")
+            .forEach((section) => section.classList.remove("active"));
+          button.classList.add("active");
+          document.getElementById(button.dataset.tab).classList.add("active");
+        });
+      });
+
+      // Initialize the dashboard
+      document.addEventListener("DOMContentLoaded", () => {
+        new TraktDashboard();
+      });
+    </script>
+  </body>
+</html>

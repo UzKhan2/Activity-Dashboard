@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="icon"
+      type="image/x-icon"
+      href="/static/favicon/letterboxd.ico"
+    />
+    <link
+      rel="shortcut icon"
+      type="image/x-icon"
+      href="/static/favicon/letterboxd.ico"
+    />
+    <title>Letterboxd</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+    <link rel="stylesheet" href="/static/css/styles.css" />
+
+    <style>
+      /* Tab Container */
+      .tab-container {
+        background-color: #2a2a2a;
+        padding: 0.5rem;
+        margin-bottom: 2rem;
+        display: flex;
+        gap: 0.5rem;
+        border-radius: var(--border-radius);
+      }
+
+      .tab-button {
+        flex: 1;
+        padding: 0.75rem 1.5rem;
+        border: none;
+        background-color: transparent;
+        color: #ffffff;
+        cursor: pointer;
+        text-align: center;
+        transition: background-color 0.3s;
+        border-radius: 4px;
+      }
+
+      .tab-button.active {
+        background-color: var(--primary-color);
+      }
+
+      /* Content Sections */
+      .content-section {
+        display: none;
+      }
+
+      .content-section.active {
+        display: block;
+      }
+
+      /* Chart specific styles */
+      #watchTimeChart {
+        margin-top: 2rem;
+        background-color: rgba(255, 255, 255, 0.1);
+        padding: 1rem;
+        border-radius: var(--border-radius);
+      }
+
+      /* Movie Grid */
+      .movie-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1.5rem;
+        padding: 1rem;
+      }
+
+      .movie-card {
+        background-color: #252525;
+        border: 1px solid #333333;
+        border-radius: 8px;
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      }
+
+      .movie-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+      }
+
+      .movie-link {
+        color: inherit;
+        text-decoration: none;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+      }
+
+      .movie-poster {
+        position: relative;
+        width: 100%;
+        padding-top: 150%;
+        overflow: hidden;
+        background-color: #1a1a1a;
+        border-bottom: 1px solid #999;
+      }
+
+      .movie-poster img {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+      }
+
+      .movie-card:hover .movie-poster img {
+        transform: scale(1.05);
+      }
+
+      .movie-info {
+        padding: 1rem;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        background-color: #252525;
+      }
+
+      .movie-header {
+        margin-bottom: 0.5rem;
+        flex-grow: 1;
+      }
+
+      .movie-title {
+        font-weight: bold;
+        margin-bottom: 0.25rem;
+        font-size: 1rem;
+      }
+
+      .movie-year {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+      }
+
+      .movie-rating {
+        color: #ffd700;
+        margin-top: 0.5rem;
+        font-size: 1.1rem;
+      }
+
+      .rewatch-badge {
+        display: inline-block;
+        background-color: var(--primary-color);
+        color: white;
+        padding: 0.25rem 0.5rem;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        margin-top: 0.5rem;
+      }
+
+      .movie-meta {
+        color: var(--text-muted);
+        font-size: 0.85rem;
+        margin-top: auto;
+      }
+
+      /* Stats Container */
+      .stats-container {
+        background-color: var(--card-color);
+        border-radius: var(--border-radius);
+        padding: 2rem;
+        margin-bottom: 2rem;
+      }
+
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-top: 1rem;
+      }
+
+      .stat-card {
+        background-color: rgba(255, 255, 255, 0.05);
+        padding: 1.5rem;
+        border-radius: var(--border-radius);
+        text-align: center;
+        transition: transform 0.3s ease;
+      }
+
+      .stat-card:hover {
+        transform: translateY(-5px);
+      }
+
+      .stat-value {
+        font-size: 2rem;
+        font-weight: bold;
+        color: var(--primary-color);
+        margin-bottom: 0.5rem;
+      }
+
+      .stat-label {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+      }
+
+      /* Filter Container */
+      .filter-container {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+        padding: 0 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+
+      .filter-button {
+        padding: 0.5rem 1rem;
+        border: none;
+        background-color: var(--card-color);
+        color: var(--text-color);
+        border-radius: var(--border-radius);
+        cursor: pointer;
+        transition: background-color 0.3s;
+      }
+
+      .filter-button:hover {
+        background-color: var(--card-hover);
+      }
+
+      .filter-button.active {
+        background-color: var(--primary-color);
+      }
+
+      /* Responsive Design */
+      @media (max-width: 768px) {
+        .container {
+          padding: 1rem;
+        }
+
+        .movie-grid {
+          grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+          gap: 1rem;
+        }
+
+        .stats-grid {
+          grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        }
+
+        .stat-value {
+          font-size: 1.5rem;
+        }
+
+        .movie-title {
+          font-size: 0.9rem;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .movie-grid {
+          grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+          gap: 0.75rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header class="header">
+        <h1>Letterboxd Watch History</h1>
+        <a href="/" class="nav-link">Back to Home</a>
+      </header>
+
+      <div class="tab-container">
+        <button class="tab-button active" data-tab="overview">Overview</button>
+        <button class="tab-button" data-tab="movies">Movies</button>
+        <button class="tab-button" data-tab="history">History</button>
+      </div>
+
+      <section id="overview" class="content-section active">
+        <div class="stats-container">
+          <div class="stat-card">
+            <div class="stat-value" id="total-movies">-</div>
+            <div class="stat-label">Movies Watched</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="avg-rating">-</div>
+            <div class="stat-label">Average Rating</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="rated-movies">-</div>
+            <div class="stat-label">Movies Rated</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="total-rewatches">-</div>
+            <div class="stat-label">Rewatches</div>
+          </div>
+        </div>
+        <canvas id="watchTimeChart"></canvas>
+      </section>
+
+      <section id="movies" class="content-section">
+        <div class="filter-container">
+          <button class="filter-button active" data-rating="all">All</button>
+          <button class="filter-button" data-rating="5">5 Stars</button>
+          <button class="filter-button" data-rating="4">4 Stars</button>
+          <button class="filter-button" data-rating="3">3 Stars</button>
+          <button class="filter-button" data-rating="2">2 Stars</button>
+          <button class="filter-button" data-rating="1">1 Stars</button>
+        </div>
+        <div class="movie-grid" id="movie-grid"></div>
+      </section>
+
+      <section id="history" class="content-section">
+        <div id="watch-history"></div>
+      </section>
+    </div>
+
+    <script>
+      class LetterboxdDashboard {
+        constructor() {
+          this.initializeData();
+          this.setupTabs();
+        }
+
+        async initializeData() {
+          try {
+            await this.fetchData();
+            this.updateStats();
+            this.renderMovies();
+            this.renderWatchTimeChart();
+            this.renderHistory();
+            this.setupFilters();
+          } catch (error) {
+            console.error("Failed to initialize dashboard:", error);
+          }
+        }
+
+        async fetchData() {
+          try {
+            const [moviesData, statsData] = await Promise.all([
+              fetch("/api/letterboxd/movies").then((r) => r.json()),
+              fetch("/api/letterboxd/stats").then((r) => r.json()),
+            ]);
+
+            this.movies = moviesData;
+            this.stats = statsData;
+
+            // Generate monthly data for the chart
+            this.generateMonthlyData();
+          } catch (error) {
+            console.error("Error fetching data:", error);
+          }
+        }
+
+        generateMonthlyData() {
+          // Group movies by month
+          const monthlyData = {};
+          this.movies.forEach((movie) => {
+            const date = new Date(movie.watched_date);
+            const monthKey = `${date.getFullYear()}-${String(
+              date.getMonth() + 1
+            ).padStart(2, "0")}`;
+            if (!monthlyData[monthKey]) {
+              monthlyData[monthKey] = {
+                count: 0,
+                ratings: [],
+              };
+            }
+            monthlyData[monthKey].count++;
+            if (movie.rating) {
+              monthlyData[monthKey].ratings.push((movie.rating || 0) + 1);
+            }
+          });
+
+          // Convert to array for chart
+          this.monthlyData = Object.entries(monthlyData)
+            .map(([month, data]) => ({
+              month,
+              count: data.count,
+              avgRating: data.ratings.length
+                ? data.ratings.reduce((a, b) => a + b, 0) / data.ratings.length
+                : 0,
+            }))
+            .sort((a, b) => a.month.localeCompare(b.month))
+            .slice(-6); // Last 6 months
+        }
+
+        updateStats() {
+          document.getElementById("total-movies").textContent =
+            this.stats.total || "-";
+          document.getElementById("avg-rating").textContent = this.stats
+            .avg_rating
+            ? (this.stats.avg_rating + 1).toFixed(1)
+            : "-";
+          document.getElementById("rated-movies").textContent =
+            this.stats.rated || "-";
+          document.getElementById("total-rewatches").textContent =
+            this.stats.rewatches || "0";
+        }
+
+        renderMovies() {
+          const grid = document.getElementById("movie-grid");
+          if (!this.movies || !grid) return;
+
+          grid.innerHTML = this.movies
+            .map(
+              (movie) => `
+                <div class="movie-card" data-rating="${
+                  movie.rating != null ? movie.rating + 1 : movie.rating
+                }">
+                    <a href="${movie.link}" class="movie-link" target="_blank">
+                        <div class="movie-poster">
+                            <img 
+                                src="${
+                                  movie.poster_url || "/api/placeholder/200/300"
+                                }" 
+                                alt="${movie.title} poster"
+                                onerror="this.onerror=null; this.src='/api/placeholder/200/300';"
+                            />
+                        </div>
+                        <div class="movie-info">
+                            <div class="movie-header">
+                                <div class="movie-title">${movie.title}</div>
+                                ${
+                                  movie.year
+                                    ? `<div class="movie-year">${movie.year}</div>`
+                                    : ""
+                                }
+                                ${
+                                  movie.rating
+                                    ? `<div class="movie-rating">${"★".repeat(
+                                        (movie.rating || 0) + 1
+                                      )}</div>`
+                                    : ""
+                                }
+                                ${
+                                  movie.rewatch === "Yes"
+                                    ? `<div class="rewatch-badge">Rewatch</div>`
+                                    : ""
+                                }
+                            </div>
+                            <div class="movie-meta">
+                                Watched on ${
+                                  movie.watched_date
+                                    ? new Date(
+                                        movie.watched_date
+                                      ).toLocaleDateString()
+                                    : "Unknown date"
+                                }
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            `
+            )
+            .join("");
+        }
+
+        renderWatchTimeChart() {
+          const ctx = document
+            .getElementById("watchTimeChart")
+            .getContext("2d");
+          new Chart(ctx, {
+            type: "line",
+            data: {
+              labels: this.monthlyData.map((d) => {
+                const [year, month] = d.month.split("-");
+                return `${new Date(year, month - 1).toLocaleString("default", {
+                  month: "short",
+                })} ${year}`;
+              }),
+              datasets: [
+                {
+                  label: "Movies Watched",
+                  data: this.monthlyData.map((d) => d.count),
+                  borderColor: "#00df54",
+                  tension: 0.4,
+                  fill: false,
+                },
+                {
+                  label: "Average Rating",
+                  data: this.monthlyData.map((d) => d.avgRating),
+                  borderColor: "#ffd700",
+                  tension: 0.4,
+                  fill: false,
+                  yAxisID: "rating",
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              plugins: {
+                legend: {
+                  position: "top",
+                  labels: { color: "#ffffff" },
+                },
+                title: {
+                  display: true,
+                  text: "Monthly Watch Statistics",
+                  color: "#ffffff",
+                },
+              },
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  grid: { color: "rgba(255, 255, 255, 0.1)" },
+                  ticks: { color: "#ffffff" },
+                },
+                rating: {
+                  position: "right",
+                  beginAtZero: true,
+                  max: 5,
+                  grid: { display: false },
+                  ticks: { color: "#ffffff" },
+                },
+                x: {
+                  grid: { color: "rgba(255, 255, 255, 0.1)" },
+                  ticks: { color: "#ffffff" },
+                },
+              },
+            },
+          });
+        }
+
+        renderHistory() {
+          const historyContainer = document.getElementById("watch-history");
+          if (!this.movies || !historyContainer) return;
+
+          const recentMovies = [...this.movies]
+            .sort((a, b) => new Date(b.watched_date) - new Date(a.watched_date))
+            .slice(0, 20);
+
+          historyContainer.innerHTML = `
+        <div class="recent-watches">
+            ${recentMovies
+              .map(
+                (movie) => `
+                        <div class="history-item">
+                            <div class="history-title">${movie.title}</div>
+                            ${
+                              movie.rating
+                                ? `<div class="movie-rating">${"★".repeat(
+                                    (movie.rating || 0) + 1
+                                  )}</div>`
+                                : ""
+                            }
+                            <div class="history-time">
+                                Watched on ${new Date(
+                                  movie.watched_date
+                                ).toLocaleDateString()}
+                            </div>
+                        </div>
+                    `
+              )
+              .join("")}
+        </div>
+    `;
+        }
+
+        setupFilters() {
+          const filterButtons = document.querySelectorAll(".filter-button");
+          filterButtons.forEach((button) => {
+            button.addEventListener("click", () => {
+              filterButtons.forEach((btn) => btn.classList.remove("active"));
+              button.classList.add("active");
+              this.filterMovies(button.dataset.rating);
+            });
+          });
+        }
+
+        filterMovies(rating) {
+          const cards = document.querySelectorAll(".movie-card");
+          cards.forEach((card) => {
+            const movieRating = parseInt(card.dataset.rating) || 0;
+            const shouldShow =
+              rating === "all" ||
+              (rating === "5" && movieRating === 5) ||
+              (rating === "4" && movieRating === 4) ||
+              (rating === "3" && movieRating === 3) ||
+              (rating === "2" && movieRating === 2) ||
+              (rating === "1" && movieRating === 1);
+            card.style.display = shouldShow ? "block" : "none";
+          });
+        }
+
+        setupTabs() {
+          const tabs = document.querySelectorAll(".tab-button");
+          tabs.forEach((tab) => {
+            tab.addEventListener("click", () => {
+              tabs.forEach((t) => t.classList.remove("active"));
+              tab.classList.add("active");
+
+              document
+                .querySelectorAll(".content-section")
+                .forEach((section) => {
+                  section.classList.remove("active");
+                });
+              document.getElementById(tab.dataset.tab).classList.add("active");
+            });
+          });
+        }
+      }
+
+      // Initialize the dashboard
+      document.addEventListener("DOMContentLoaded", () => {
+        new LetterboxdDashboard();
+      });
+    </script>
+  </body>
+</html>

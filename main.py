@@ -1,6 +1,6 @@
-from flask import Flask, render_template
-from dotenv import load_dotenv
 import os
+from dotenv import load_dotenv
+from flask import Flask, render_template, send_from_directory
 
 from modules.github import init_github_routes
 from modules.letterboxd import init_letterboxd_routes
@@ -14,7 +14,7 @@ def create_app():
     app = Flask(__name__)
     app.config['SECRET_KEY'] = os.getenv('FLASK_SECRET_KEY', os.urandom(32))
     
-    # Set up Trakt API for watch time data
+    # Set up Trakt API for watch time data #-- Add in other time stats
     try:
         trakt = TraktAPI()
         if not trakt.access_token:

@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="icon"
+      type="image/x-icon"
+      href="/static/favicon/trueachievements.ico"
+    />
+    <link
+      rel="shortcut icon"
+      type="image/x-icon"
+      href="/static/favicon/trueachievements.ico"
+    />
+    <title>Trueachievements</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+    <link rel="stylesheet" href="/static/css/styles.css" />
+    <style>
+      /* Tab Container */
+      .tab-container {
+        background-color: #2a2a2a;
+        padding: 0.5rem;
+        margin-bottom: 2rem;
+        display: flex;
+        gap: 0.5rem;
+        border-radius: var(--border-radius);
+      }
+
+      .tab-button {
+        flex: 1;
+        padding: 0.75rem 1.5rem;
+        border: none;
+        background-color: transparent;
+        color: #ffffff;
+        cursor: pointer;
+        text-align: center;
+        transition: background-color 0.3s;
+        border-radius: 4px;
+      }
+
+      .tab-button.active {
+        background-color: var(--primary-color);
+      }
+
+      .content-section {
+        display: none;
+      }
+
+      .content-section.active {
+        display: block;
+        animation: fadeIn 0.3s ease-in-out;
+      }
+
+      /* Stats Container */
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+      }
+
+      .stat-card {
+        background-color: var(--card-color);
+        padding: 1.5rem;
+        border-radius: var(--border-radius);
+        text-align: center;
+        transition: transform 0.3s ease;
+      }
+
+      .stat-card:hover {
+        transform: translateY(-5px);
+      }
+
+      .stat-value {
+        font-size: 2rem;
+        font-weight: bold;
+        color: var(--primary-color);
+        margin-bottom: 0.5rem;
+      }
+
+      .stat-label {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+      }
+
+      /* Games Grid */
+      .games-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1.5rem;
+        padding: 2rem;
+      }
+
+      .game-card {
+        background-color: #252525;
+        border: 1px solid #333333;
+        border-radius: 8px;
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      }
+
+      /* Completed games */
+      .game-card[data-completion="100"] {
+        border: 3px solid #ffd700;
+        box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+        background: linear-gradient(
+          to bottom right,
+          #252525,
+          rgba(255, 215, 0, 0.1)
+        );
+      }
+
+      .game-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+      }
+
+      .game-link {
+        color: inherit;
+        text-decoration: none;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+      }
+
+      .game-image-container {
+        width: 100%;
+        height: 200px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .game-image-background {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-size: cover;
+        background-position: center;
+        filter: blur(10px);
+        transform: scale(1.1);
+        opacity: 0.8;
+      }
+
+      .game-image {
+        position: relative;
+        height: 100%;
+        width: auto;
+        object-fit: contain;
+        display: block;
+        margin: 0 auto;
+        z-index: 1;
+      }
+
+      .game-info {
+        padding: 1rem;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .game-title {
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+        color: var(--text-color);
+        font-size: 1.1rem;
+      }
+
+      .game-stats {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.5rem;
+        margin-top: auto;
+      }
+
+      .stat {
+        text-align: center;
+        padding: 0.5rem;
+        background-color: rgba(255, 255, 255, 0.1);
+        border-radius: var(--border-radius);
+      }
+
+      /* Chart styles */
+      #achievementsChart {
+        margin-top: 2rem;
+        background-color: rgba(255, 255, 255, 0.1);
+        padding: 1rem;
+        border-radius: var(--border-radius);
+      }
+
+      /* Animations */
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* Responsive Design */
+      @media (max-width: 768px) {
+        .container {
+          padding: 1rem;
+        }
+
+        .games-grid {
+          grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+          padding: 1rem;
+        }
+
+        .stat-value {
+          font-size: 1.5rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header class="header">
+        <h1>Trueachievements History</h1>
+        <a href="/" class="nav-link">Back to Home</a>
+      </header>
+
+      <div class="tab-container">
+        <button class="tab-button active" data-tab="overview">Overview</button>
+        <button class="tab-button" data-tab="games">Games</button>
+        <button class="tab-button" data-tab="completed">Completed</button>
+        <button class="tab-button" data-tab="recent">Recent</button>
+      </div>
+
+      {% if games %}
+      <section id="overview" class="content-section active">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-value">{{ stats.total_games }}</div>
+            <div class="stat-label">Total Games</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">
+              {{ '{:,}'.format(stats.total_gamerscore) }}
+            </div>
+            <div class="stat-label">Total Gamerscore</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">
+              {{ '%.1f'|format(stats.average_completion) }}%
+            </div>
+            <div class="stat-label">Average Completion</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value">{{ stats.completed_games }}</div>
+            <div class="stat-label">Completed Games</div>
+          </div>
+        </div>
+        <canvas id="achievementsChart"></canvas>
+      </section>
+
+      <section id="games" class="content-section">
+        <h2>All Games</h2>
+        <div class="games-grid">
+          {% for game in games %}
+          <div
+            class="game-card"
+            data-completion="{{ '100' if game.completion >= 100 else '0' }}"
+          >
+            <a href="{{ game.url }}" class="game-link" target="_blank">
+              <div class="game-image-container">
+                <div
+                  class="game-image-background"
+                  style="background-image: url('{{ game.image_url }}')"
+                ></div>
+                <img
+                  class="game-image"
+                  src="{{ game.image_url }}"
+                  alt="{{ game.title }}"
+                  onerror="this.src='/api/placeholder/300/200'"
+                />
+              </div>
+              <div class="game-info">
+                <div class="game-title">{{ game.title }}</div>
+                <div class="game-stats">
+                  <div class="stat">
+                    <div class="stat-label">Achievements</div>
+                    <div class="stat-value">{{ game.achievements }}</div>
+                  </div>
+                  <div class="stat">
+                    <div class="stat-label">Gamerscore</div>
+                    <div class="stat-value">{{ game.gamerscore }}</div>
+                  </div>
+                </div>
+                <div class="stat" style="margin-top: 0.5rem">
+                  <div class="stat-label">Completion</div>
+                  <div class="stat-value">{{ game.completion_display }}</div>
+                  <div class="completion-bar">
+                    <div
+                      class="completion-progress"
+                      style="--progress: {{ game.completion }}%"
+                    ></div>
+                  </div>
+                </div>
+              </div>
+            </a>
+          </div>
+          {% endfor %}
+        </div>
+      </section>
+
+      <section id="completed" class="content-section">
+        <h2>Completed Games</h2>
+        <div class="games-grid">
+          {% for game in games %} {% if game.completion >= 100 %}
+          <div class="game-card" data-completion="100">
+            <a href="{{ game.url }}" class="game-link" target="_blank">
+              <div class="game-image-container">
+                <div
+                  class="game-image-background"
+                  style="background-image: url('{{ game.image_url }}')"
+                ></div>
+                <img
+                  class="game-image"
+                  src="{{ game.image_url }}"
+                  alt="{{ game.title }}"
+                  onerror="this.src='/api/placeholder/300/200'"
+                />
+              </div>
+              <div class="game-info">
+                <div class="game-title">{{ game.title }}</div>
+                <div class="game-stats">
+                  <div class="stat">
+                    <div class="stat-label">Achievements</div>
+                    <div class="stat-value">{{ game.achievements }}</div>
+                  </div>
+                  <div class="stat">
+                    <div class="stat-label">Gamerscore</div>
+                    <div class="stat-value">{{ game.gamerscore }}</div>
+                  </div>
+                </div>
+                <div class="stat" style="margin-top: 0.5rem">
+                  <div class="stat-label">Completion</div>
+                  <div class="stat-value">{{ game.completion_display }}</div>
+                  <div class="completion-bar">
+                    <div
+                      class="completion-progress"
+                      style="--progress: {{ game.completion }}%"
+                    ></div>
+                  </div>
+                </div>
+              </div>
+            </a>
+          </div>
+          {% endif %} {% endfor %}
+        </div>
+      </section>
+
+      <section id="recent" class="content-section">
+        <h2>Recent Activity</h2>
+        <div class="games-grid">
+          {% for game in games[:10] %}
+          <div
+            class="game-card"
+            data-completion="{{ '100' if game.completion >= 100 else '0' }}"
+          >
+            <a href="{{ game.url }}" class="game-link" target="_blank">
+              <div class="game-image-container">
+                <div
+                  class="game-image-background"
+                  style="background-image: url('{{ game.image_url }}')"
+                ></div>
+                <img
+                  class="game-image"
+                  src="{{ game.image_url }}"
+                  alt="{{ game.title }}"
+                  onerror="this.src='/api/placeholder/300/200'"
+                />
+              </div>
+              <div class="game-info">
+                <div class="game-title">{{ game.title }}</div>
+                <div class="game-stats">
+                  <div class="stat">
+                    <div class="stat-label">Achievements</div>
+                    <div class="stat-value">{{ game.achievements }}</div>
+                  </div>
+                  <div class="stat">
+                    <div class="stat-label">Gamerscore</div>
+                    <div class="stat-value">{{ game.gamerscore }}</div>
+                  </div>
+                </div>
+                <div class="stat" style="margin-top: 0.5rem">
+                  <div class="stat-label">Completion</div>
+                  <div class="stat-value">{{ game.completion_display }}</div>
+                  <div class="completion-bar">
+                    <div
+                      class="completion-progress"
+                      style="--progress: {{ game.completion }}%"
+                    ></div>
+                  </div>
+                </div>
+              </div>
+            </a>
+          </div>
+          {% endfor %}
+        </div>
+      </section>
+
+      {% else %}
+      <div class="error-message">
+        <h2>No Games Found</h2>
+        <p>
+          Either no games were found or there was an error loading the games
+          list.
+        </p>
+        {% if error %}
+        <p class="error-details">Error: {{ error }}</p>
+        {% endif %}
+      </div>
+      {% endif %}
+    </div>
+
+    <script>
+      // Tab switching functionality
+      document.querySelectorAll(".tab-button").forEach((button) => {
+        button.addEventListener("click", () => {
+          document
+            .querySelectorAll(".tab-button")
+            .forEach((btn) => btn.classList.remove("active"));
+          document
+            .querySelectorAll(".content-section")
+            .forEach((section) => section.classList.remove("active"));
+          button.classList.add("active");
+          document.getElementById(button.dataset.tab).classList.add("active");
+        });
+      });
+
+      // Initialize achievements chart
+      document.addEventListener("DOMContentLoaded", () => {
+        const ctx = document
+          .getElementById("achievementsChart")
+          .getContext("2d");
+        new Chart(ctx, {
+          type: "line",
+          data: {
+            labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
+            datasets: [
+              {
+                label: "Achievements Earned",
+                data: [65, 78, 42, 89, 56, 93],
+                borderColor: "#00df54",
+                tension: 0.4,
+                fill: false,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: {
+                position: "top",
+                labels: { color: "#ffffff" },
+              },
+              title: {
+                display: true,
+                text: "Monthly Achievements Progress",
+                color: "#ffffff",
+              },
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                grid: { color: "rgba(255, 255, 255, 0.1)" },
+                ticks: { color: "#ffffff" },
+              },
+              x: {
+                grid: { color: "rgba(255, 255, 255, 0.1)" },
+                ticks: { color: "#ffffff" },
+              },
+            },
+          },
+        });
+      });
+    </script>
+  </body>
+</html>
