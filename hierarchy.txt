@@ -1,0 +1,30 @@
+Activity-Dashboard/
+├── static/
+│   ├── favicon/
+│   ├── css/
+│   │   └── styles.css
+│   └── js/
+│       ├── components/
+│       │   ├── ShowCard.js
+│       │   └── GitHubActivity.js
+│       ├── shows.js
+│       └── github.js
+├── templates/
+│   ├── index.html
+│   ├── goodreads.html
+│   ├── trueachievements.html
+│   ├── myanimelist.html
+│   ├── letterboxd.html
+│   ├── trakt.html
+│   └── github.html
+├── modules/
+│   ├── utils.py
+│   ├── goodreads.py
+│   ├── trueachievements.py
+│   ├── myanimelist.py
+│   ├── letterboxd.py
+│   ├── trakt.py
+│   └── github.py
+├── .env
+├── main.py
+└── requirements.txt
